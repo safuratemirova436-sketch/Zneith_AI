@@ -129,7 +129,7 @@
         </div>
     </div>
 
-    <!-- Полный JavaScript -->
+    <!-- Обновлённый скрипт с умным обходом перегруженных моделей -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             let apiKey = localStorage.getItem('zenith_api_key') || '';
@@ -320,18 +320,18 @@
                 elChatScrollArea.scrollTop = elChatScrollArea.scrollHeight;
             }
 
+            // Улучшенная функция: обходит перегруженные серверы
             async function fetchGeminiResponse(text) {
-                const candidateModels = [
+                const models = [
                     'models/gemini-2.5-flash',
                     'models/gemini-1.5-flash',
                     'models/gemini-2.0-flash',
-                    'models/gemini-3.8-flash'
+                    'models/gemini-2.5-pro'
                 ];
 
                 let lastErrMsg = '';
 
-                // Сначала перебираем проверенные модели напрямую
-                for (const model of candidateModels) {
+                for (const model of models) {
                     try {
                         const url = `https://generativelanguage.googleapis.com/v1beta/${model}:generateContent?key=${apiKey}`;
                         const res = await fetch(url, {
@@ -340,48 +340,24 @@
                             body: JSON.stringify({ contents: [{ parts: [{ text: text }] }] })
                         });
                         const data = await res.json();
+                        
                         if (res.ok && data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
                             return data.candidates[0].content.parts[0].text;
                         }
+                        
+                        // Если модель перегружена (high demand / 429), пробуем следующую
                         if (data.error && data.error.message) {
                             lastErrMsg = data.error.message;
+                            if (data.error.message.includes('high demand') || res.status === 429) {
+                                continue; 
+                            }
                         }
                     } catch (e) {
                         lastErrMsg = e.message;
                     }
                 }
 
-                // Если ни одна модель не подошла — запрашиваем точный список у API
-                try {
-                    const listRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
-                    const listData = await listRes.json();
-
-                    if (listRes.ok && listData.models && listData.models.length > 0) {
-                        const validModel = listData.models.find(m => 
-                            m.supportedGenerationMethods && 
-                            m.supportedGenerationMethods.includes('generateContent')
-                        );
-
-                        if (validModel) {
-                            const url = `https://generativelanguage.googleapis.com/v1beta/${validModel.name}:generateContent?key=${apiKey}`;
-                            const res = await fetch(url, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ contents: [{ parts: [{ text: text }] }] })
-                            });
-                            const data = await res.json();
-                            if (res.ok && data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
-                                return data.candidates[0].content.parts[0].text;
-                            }
-                        }
-                    } else if (listData.error && listData.error.message) {
-                        lastErrMsg = listData.error.message;
-                    }
-                } catch (e) {
-                    lastErrMsg = e.message;
-                }
-
-                throw new Error(lastErrMsg || 'Проверьте правильность вашего API ключа в настройках.');
+                throw new Error(lastErrMsg || 'Сервера перегружены. Попробуйте еще раз через секунду.');
             }
 
             async function sendMessage() {
