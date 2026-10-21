@@ -321,8 +321,8 @@
             }
 
             async function fetchGeminiResponse(text) {
-                // Актуальная рабочая модель Google Gemini
-                const models = ['gemini-2.5-flash', 'gemini-2.5-pro'];
+                // Самая новая модель по рекомендации Google
+                const models = ['gemini-3.1-pro-preview', 'gemini-2.5-flash'];
                 let lastError = null;
 
                 for (const model of models) {
