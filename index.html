@@ -129,7 +129,7 @@
         </div>
     </div>
 
-    <!-- Обновленный скрипт с актуальными моделями -->
+    <!-- Обновленный скрипт -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             let apiKey = localStorage.getItem('zenith_api_key') || '';
@@ -320,19 +320,18 @@
                 elChatScrollArea.scrollTop = elChatScrollArea.scrollHeight;
             }
 
-            // Только актуальные модели 2026 года
+            // Google-ийн одоо ажиллаж байгаа баталгаатай загварууд
             async function fetchGeminiResponse(text) {
                 const models = [
-                    'models/gemini-2.5-flash',
-                    'models/gemini-3.1-pro-preview',
-                    'models/gemini-1.5-flash'
+                    'gemini-2.0-flash',
+                    'gemini-1.5-flash-8b'
                 ];
 
                 let lastErrMsg = '';
 
                 for (const model of models) {
                     try {
-                        const url = `https://generativelanguage.googleapis.com/v1beta/${model}:generateContent?key=${apiKey}`;
+                        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
                         const res = await fetch(url, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
@@ -352,7 +351,7 @@
                     }
                 }
 
-                throw new Error(lastErrMsg || 'Ошибка подключения. Проверьте ключ в настройках.');
+                throw new Error(lastErrMsg || 'Холболтын алдаа. Тохиргоо хэсэгт API түлхүүрээ шалгалгүй оруулна уу.');
             }
 
             async function sendMessage() {
@@ -379,7 +378,7 @@
 
                 const loadingDiv = document.createElement('div');
                 loadingDiv.className = 'flex justify-start';
-                loadingDiv.innerHTML = `<div class="glass border border-slate-800 rounded-2xl px-5 py-3.5 text-sm text-indigo-400 animate-pulse">✨ Zenith AI думает...</div>`;
+                loadingDiv.innerHTML = `<div class="glass border border-slate-800 rounded-2xl px-5 py-3.5 text-sm text-indigo-400 animate-pulse">✨ Zenith AI бодож байна...</div>`;
                 elMessagesContainer.appendChild(loadingDiv);
                 elChatScrollArea.scrollTop = elChatScrollArea.scrollHeight;
 
@@ -391,7 +390,7 @@
                     renderMessages();
                 } catch (err) {
                     loadingDiv.remove();
-                    activeChat.messages.push({ role: 'assistant', text: 'Ошибка: ' + err.message });
+                    activeChat.messages.push({ role: 'assistant', text: 'Алдаа: ' + err.message });
                     saveChats();
                     renderMessages();
                 }
