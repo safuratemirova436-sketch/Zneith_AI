@@ -129,7 +129,7 @@
         </div>
     </div>
 
-    <!-- Обновлённый скрипт с умным обходом перегруженных моделей -->
+    <!-- Обновленный скрипт с актуальными моделями -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             let apiKey = localStorage.getItem('zenith_api_key') || '';
@@ -320,13 +320,12 @@
                 elChatScrollArea.scrollTop = elChatScrollArea.scrollHeight;
             }
 
-            // Улучшенная функция: обходит перегруженные серверы
+            // Только актуальные модели 2026 года
             async function fetchGeminiResponse(text) {
                 const models = [
                     'models/gemini-2.5-flash',
-                    'models/gemini-1.5-flash',
-                    'models/gemini-2.0-flash',
-                    'models/gemini-2.5-pro'
+                    'models/gemini-3.1-pro-preview',
+                    'models/gemini-1.5-flash'
                 ];
 
                 let lastErrMsg = '';
@@ -345,19 +344,15 @@
                             return data.candidates[0].content.parts[0].text;
                         }
                         
-                        // Если модель перегружена (high demand / 429), пробуем следующую
                         if (data.error && data.error.message) {
                             lastErrMsg = data.error.message;
-                            if (data.error.message.includes('high demand') || res.status === 429) {
-                                continue; 
-                            }
                         }
                     } catch (e) {
                         lastErrMsg = e.message;
                     }
                 }
 
-                throw new Error(lastErrMsg || 'Сервера перегружены. Попробуйте еще раз через секунду.');
+                throw new Error(lastErrMsg || 'Ошибка подключения. Проверьте ключ в настройках.');
             }
 
             async function sendMessage() {
