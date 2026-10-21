@@ -6,81 +6,105 @@
     <title>Zenith AI</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #0d1117; color: #e6edf3; font-family: system-ui, -apple-system, sans-serif; }
-        .bg-card { background-color: #161b22; }
-        .bg-sidebar { background-color: #0d1117; }
-        .btn-icon { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .btn-icon:hover { background: rgba(255, 255, 255, 0.1); }
-        .chat-active { background: #1f293d; border: 1px solid #3b82f6; }
+        body { 
+            background: #090d16; 
+            color: #e6edf3; 
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+        /* Стильный скроллбар */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0d1117; }
+        ::-webkit-scrollbar-thumb { background: #1f293d; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #374151; }
+
+        .glass { 
+            background: rgba(17, 24, 39, 0.75); 
+            backdrop-filter: blur(16px); 
+            border: 1px solid rgba(255, 255, 255, 0.08); 
+        }
+        .chat-active { 
+            background: rgba(99, 102, 241, 0.2) !important; 
+            border: 1px solid rgba(99, 102, 241, 0.5) !important; 
+        }
         .chat-item:hover .btn-delete-chat { opacity: 1; }
+        
+        /* Анимированный декор на фоне */
+        .glow-bg {
+            position: absolute;
+            width: 350px;
+            height: 350px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, rgba(0, 0, 0, 0) 70%);
+            top: 20%;
+            left: 30%;
+            pointer-events: none;
+            z-index: 0;
+        }
     </style>
 </head>
 <body class="h-screen flex flex-col justify-between overflow-hidden relative">
 
-    <!-- Выдвижная боковая панель (История чатов) -->
-    <div id="sidebar-overlay" class="fixed inset-0 bg-black/60 z-40 hidden backdrop-blur-sm transition-opacity"></div>
-    <aside id="sidebar" class="fixed top-0 left-0 h-full w-80 bg-sidebar border-r border-gray-800 z-50 transform -translate-x-full transition-transform duration-300 ease-in-out flex flex-col p-4">
+    <div class="glow-bg"></div>
+
+    <!-- Выдвижная боковая панель -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black/70 z-40 hidden backdrop-blur-sm transition-opacity"></div>
+    <aside id="sidebar" class="fixed top-0 left-0 h-full w-80 glass border-r border-gray-800 z-50 transform -translate-x-full transition-transform duration-300 ease-in-out flex flex-col p-4">
         <div class="flex justify-between items-center mb-6 pb-2 border-b border-gray-800">
-            <h2 class="text-lg font-semibold text-white">История чатов</h2>
+            <h2 class="text-lg font-semibold text-white flex items-center gap-2">
+                <span>💬</span> История чатов
+            </h2>
             <button id="btn-close-sidebar" class="text-gray-400 hover:text-white p-1 text-xl cursor-pointer">✕</button>
         </div>
         
         <div id="chats-list" class="flex-1 space-y-2 overflow-y-auto pr-1">
-            <!-- Список чатов загружается динамически -->
+            <!-- Список чатов -->
         </div>
     </aside>
 
-    <!-- Шапка (Header) -->
-    <header class="px-6 py-4 flex justify-between items-center border-b border-gray-800/60 z-10 bg-sidebar">
+    <!-- Верхняя шапка (Header) -->
+    <header class="px-6 py-4 flex justify-between items-center border-b border-gray-800/80 z-10 glass">
         <div class="flex items-center space-x-4">
-            <!-- Кнопка гамбургер меню -->
-            <button id="btn-open-sidebar" class="text-gray-300 hover:text-white text-xl p-2 rounded-lg btn-icon cursor-pointer">
+            <button id="btn-open-sidebar" class="text-gray-300 hover:text-white text-xl p-2 rounded-xl bg-gray-800/60 hover:bg-gray-700/60 border border-gray-700/50 transition cursor-pointer">
                 ☰
             </button>
-            <!-- Логотип -->
             <div class="flex items-center space-x-2.5">
-                <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center font-bold text-white text-base shadow-md">Z</div>
-                <span class="font-bold text-lg text-white tracking-wide">Zenith AI</span>
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center font-extrabold text-white text-lg shadow-lg shadow-indigo-500/30">Z</div>
+                <span class="font-bold text-xl text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400 tracking-wide">Zenith AI</span>
             </div>
         </div>
 
-        <!-- Кнопки справа -->
-        <div class="flex items-center space-x-2">
-            <!-- Новый чат + -->
-            <button id="btn-header-new-chat" title="Новый чат" class="w-9 h-9 rounded-lg btn-icon flex items-center justify-center text-gray-200 hover:text-white text-xl cursor-pointer">
+        <div class="flex items-center space-x-3">
+            <button id="btn-header-new-chat" title="Новый чат" class="w-10 h-10 rounded-xl bg-gray-800/60 hover:bg-gray-700/60 border border-gray-700/50 flex items-center justify-center text-gray-200 hover:text-white text-2xl transition cursor-pointer">
                 +
             </button>
-            <!-- Настройки ⚙️ -->
-            <button id="btn-settings" title="Настройки API" class="w-9 h-9 rounded-lg btn-icon flex items-center justify-center text-gray-200 hover:text-white text-base cursor-pointer">
+            <button id="btn-settings" title="Настройки API" class="w-10 h-10 rounded-xl bg-gray-800/60 hover:bg-gray-700/60 border border-gray-700/50 flex items-center justify-center text-gray-200 hover:text-white text-lg transition cursor-pointer">
                 ⚙️
             </button>
-            <!-- Профиль/Имя -->
-            <div id="user-badge" class="px-3 py-1.5 rounded-lg bg-indigo-950/80 border border-indigo-700/50 text-indigo-200 text-xs font-medium">
-                Jasur
+            <div id="user-badge" class="px-3.5 py-2 rounded-xl bg-indigo-950/80 border border-indigo-600/40 text-indigo-200 text-xs font-semibold shadow-inner">
+                👤 Jasur
             </div>
         </div>
     </header>
 
-    <!-- Основной контент чата -->
-    <main class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 max-w-4xl w-full mx-auto flex flex-col justify-start">
-        <!-- Предупреждение об отсутствии API Ключа -->
-        <div id="warning-banner" class="hidden bg-amber-950/40 border border-amber-600/50 text-amber-200 px-4 py-3 rounded-xl flex items-center justify-between text-xs sm:text-sm">
-            <span>⚠️ <b>API ключ не задан.</b> Нажмите на шестерёнку (⚙️), чтобы добавить бесплатный ключ Gemini.</span>
-            <button id="btn-configure-warning" class="underline hover:text-white font-medium ml-2 cursor-pointer">Настроить</button>
+    <!-- Основной чат -->
+    <main class="flex-1 overflow-y-auto p-4 sm:p-6 max-w-4xl w-full mx-auto flex flex-col justify-start z-10">
+        <!-- Предупреждение -->
+        <div id="warning-banner" class="hidden mb-4 bg-amber-950/50 border border-amber-600/50 text-amber-200 px-4 py-3 rounded-2xl flex items-center justify-between text-xs sm:text-sm backdrop-blur-md">
+            <span>⚠️ <b>API ключ не задан.</b> Нажмите на шестерёнку (⚙️), чтобы вставить бесплатный ключ Gemini.</span>
+            <button id="btn-configure-warning" class="bg-amber-600/30 hover:bg-amber-600/50 px-3 py-1 rounded-lg text-white font-medium ml-2 transition cursor-pointer">Настроить</button>
         </div>
 
-        <!-- Сообщения -->
+        <!-- Окно сообщений -->
         <div id="messages-container" class="space-y-4 w-full pt-2">
-            <!-- Сообщения загружаются динамически -->
+            <!-- Сообщения добавляются здесь -->
         </div>
     </main>
 
-    <!-- Нижний блок ввода -->
-    <footer class="p-4 bg-sidebar border-t border-gray-800/60">
+    <!-- Поле ввода -->
+    <footer class="p-4 glass border-t border-gray-800/80 z-10">
         <div class="max-w-3xl mx-auto space-y-2">
             <div class="relative flex items-center">
-                <input type="text" id="chat-input" placeholder="Задайте вопрос Zenith AI..." class="w-full bg-card border border-gray-700/80 rounded-2xl px-5 py-3.5 pr-12 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 text-sm transition">
-                <button id="btn-send" class="absolute right-3 text-indigo-400 hover:text-indigo-300 p-1.5 rounded-lg text-lg cursor-pointer">
+                <input type="text" id="chat-input" placeholder="Задайте вопрос Zenith AI..." class="w-full bg-gray-900/90 border border-gray-700/80 rounded-2xl px-5 py-4 pr-14 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 text-sm transition shadow-inner">
+                <button id="btn-send" class="absolute right-3 bg-indigo-600 hover:bg-indigo-500 text-white w-9 h-9 rounded-xl flex items-center justify-center text-base transition shadow-md shadow-indigo-600/30 cursor-pointer">
                     ➔
                 </button>
             </div>
@@ -88,22 +112,25 @@
         </div>
     </footer>
 
-    <!-- Модальное окно Настроек -->
-    <div id="modal-settings" class="fixed inset-0 bg-black/80 flex items-center justify-center p-4 hidden z-50 backdrop-blur-sm">
-        <div class="bg-card max-w-md w-full p-6 rounded-2xl space-y-4 border border-gray-700">
-            <h3 class="text-lg font-semibold text-white">⚙️ Настройки Gemini API</h3>
-            <p class="text-xs text-gray-400">Получите ключ бесплатно в <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-indigo-400 underline">Google AI Studio</a>.</p>
-            <input type="password" id="input-api-key" placeholder="Вставьте ваш API ключ..." class="w-full bg-slate-900 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500">
+    <!-- Настройки Modal -->
+    <div id="modal-settings" class="fixed inset-0 bg-black/80 flex items-center justify-center p-4 hidden z-50 backdrop-blur-md">
+        <div class="glass max-w-md w-full p-6 rounded-2xl space-y-4 border border-gray-700/80 shadow-2xl">
+            <h3 class="text-lg font-semibold text-white flex items-center gap-2">⚙️ Настройки Gemini API</h3>
+            <p class="text-xs text-gray-400">Получите бесплатный API ключ в пару кликов на <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-indigo-400 underline hover:text-indigo-300">Google AI Studio</a>.</p>
+            <input type="password" id="input-api-key" placeholder="Вставьте ваш API ключ (AIzaSy...)" class="w-full bg-gray-950 border border-gray-700 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-indigo-500">
             <div class="flex justify-end space-x-2 pt-2">
-                <button id="btn-save-settings" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-medium cursor-pointer">Сохранить</button>
+                <button id="btn-save-settings" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-medium transition cursor-pointer shadow-lg shadow-indigo-600/30">Сохранить</button>
             </div>
         </div>
     </div>
 
-    <!-- JavaScript Логика -->
+    <!-- JavaScript -->
     <script>
         let apiKey = localStorage.getItem('zenith_api_key') || '';
-        let chats = JSON.parse(localStorage.getItem('zenith_chats')) || [];
+        let rawChats = JSON.parse(localStorage.getItem('zenith_chats')) || [];
+        
+        // Очищаем старые сломанные чаты с undefined
+        let chats = rawChats.filter(c => c && typeof c === 'object' && c.id && c.title && Array.isArray(c.messages));
         let activeChatId = localStorage.getItem('zenith_active_chat_id') || null;
 
         const elApiKeyInput = document.getElementById('input-api-key');
@@ -117,224 +144,4 @@
         const elSidebar = document.getElementById('sidebar');
         const elSidebarOverlay = document.getElementById('sidebar-overlay');
 
-        elApiKeyInput.value = apiKey;
-
-        const MODELS = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash-latest'];
-
-        function updateApiKeyWarning() {
-            if (!apiKey) {
-                elWarningBanner.classList.remove('hidden');
-            } else {
-                elWarningBanner.classList.add('hidden');
-            }
-        }
-
-        function init() {
-            updateApiKeyWarning();
-            if (chats.length === 0) {
-                createNewChat();
-            } else {
-                if (!activeChatId || !chats.find(c => c.id === activeChatId)) {
-                    activeChatId = chats[0].id;
-                }
-                renderChatsList();
-                renderMessages();
-            }
-        }
-
-        function createNewChat() {
-            const newChat = {
-                id: 'chat_' + Date.now(),
-                title: 'Новый чат',
-                messages: []
-            };
-            chats.unshift(newChat);
-            activeChatId = newChat.id;
-            saveChats();
-            renderChatsList();
-            renderMessages();
-            closeSidebar();
-        }
-
-        function deleteChat(chatId, e) {
-            e.stopPropagation();
-            chats = chats.filter(c => c.id !== chatId);
-            if (chats.length === 0) {
-                createNewChat();
-            } else {
-                if (activeChatId === chatId) {
-                    activeChatId = chats[0].id;
-                }
-                saveChats();
-                renderChatsList();
-                renderMessages();
-            }
-        }
-
-        function saveChats() {
-            localStorage.setItem('zenith_chats', JSON.stringify(chats));
-            localStorage.setItem('zenith_active_chat_id', activeChatId);
-        }
-
-        function renderChatsList() {
-            elChatsList.innerHTML = '';
-            chats.forEach(chat => {
-                const container = document.createElement('div');
-                const isActive = chat.id === activeChatId;
-                container.className = `chat-item group w-full px-4 py-3 rounded-xl text-sm font-medium flex items-center justify-between cursor-pointer transition ${isActive ? 'chat-active text-white' : 'bg-card text-gray-300 hover:bg-gray-800'}`;
-                
-                const titleSpan = document.createElement('span');
-                titleSpan.className = 'truncate flex-1 pr-2';
-                titleSpan.innerText = chat.title;
-
-                const deleteBtn = document.createElement('button');
-                deleteBtn.className = 'btn-delete-chat opacity-0 hover:text-red-400 text-gray-400 transition p-1 cursor-pointer';
-                deleteBtn.title = 'Удалить чат';
-                deleteBtn.innerHTML = '🗑️';
-                deleteBtn.onclick = (e) => deleteChat(chat.id, e);
-
-                container.appendChild(titleSpan);
-                container.appendChild(deleteBtn);
-
-                container.onclick = () => {
-                    activeChatId = chat.id;
-                    saveChats();
-                    renderChatsList();
-                    renderMessages();
-                    closeSidebar();
-                };
-
-                elChatsList.appendChild(container);
-            });
-        }
-
-        function renderMessages() {
-            const activeChat = chats.find(c => c.id === activeChatId);
-            if (!activeChat) return;
-
-            elMessagesContainer.innerHTML = '';
-
-            if (activeChat.messages.length === 0) {
-                elMessagesContainer.innerHTML = `
-                    <div class="flex justify-start">
-                        <div class="bg-card border border-gray-800 rounded-2xl px-5 py-3.5 text-sm text-gray-200 max-w-[85%] shadow-md">
-                            Здравствуйте, Jasur! Чем я могу помочь вам сегодня?
-                        </div>
-                    </div>`;
-                return;
-            }
-
-            activeChat.messages.forEach(msg => {
-                appendMessageToDOM(msg.role, msg.text);
-            });
-            elMessagesContainer.scrollTop = elMessagesContainer.scrollHeight;
-        }
-
-        function appendMessageToDOM(role, text) {
-            const div = document.createElement('div');
-            div.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'}`;
-            
-            const bubble = document.createElement('div');
-            bubble.className = `max-w-[85%] rounded-2xl px-5 py-3.5 text-sm ${role === 'user' ? 'bg-indigo-600 text-white' : 'bg-card border border-gray-800 text-gray-200'}`;
-            bubble.innerText = text;
-
-            div.appendChild(bubble);
-            elMessagesContainer.appendChild(div);
-            elMessagesContainer.scrollTop = elMessagesContainer.scrollHeight;
-        }
-
-        async function fetchGeminiResponse(text) {
-            let lastError = null;
-            for (const model of MODELS) {
-                try {
-                    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ contents: [{ parts: [{ text: text }] }] })
-                    });
-                    const data = await res.json();
-                    if (res.ok && data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
-                        return data.candidates[0].content.parts[0].text;
-                    }
-                    if (data.error) lastError = data.error.message;
-                } catch (e) {
-                    lastError = e.message;
-                }
-            }
-            throw new Error(lastError || 'Ошибка соединения с API.');
-        }
-
-        async function sendMessage() {
-            const text = elChatInput.value.trim();
-            if (!text) return;
-
-            if (!apiKey) {
-                elModalSettings.classList.remove('hidden');
-                return;
-            }
-
-            const activeChat = chats.find(c => c.id === activeChatId);
-            if (!activeChat) return;
-
-            if (activeChat.messages.length === 0) {
-                activeChat.title = text.slice(0, 22) + (text.length > 22 ? '...' : '');
-                renderChatsList();
-            }
-
-            activeChat.messages.push({ role: 'user', text: text });
-            saveChats();
-            renderMessages();
-            elChatInput.value = '';
-
-            const loadingDiv = document.createElement('div');
-            loadingDiv.className = 'flex justify-start';
-            loadingDiv.innerHTML = `<div class="bg-card border border-gray-800 rounded-2xl px-5 py-3.5 text-sm text-indigo-400 animate-pulse">Zenith AI думает...</div>`;
-            elMessagesContainer.appendChild(loadingDiv);
-            elMessagesContainer.scrollTop = elMessagesContainer.scrollHeight;
-
-            try {
-                const reply = await fetchGeminiResponse(text);
-                loadingDiv.remove();
-                activeChat.messages.push({ role: 'assistant', text: reply });
-                saveChats();
-                renderMessages();
-            } catch (err) {
-                loadingDiv.remove();
-                activeChat.messages.push({ role: 'assistant', text: 'Ошибка: ' + err.message });
-                saveChats();
-                renderMessages();
-            }
-        }
-
-        function openSidebar() {
-            elSidebar.classList.remove('-translate-x-full');
-            elSidebarOverlay.classList.remove('hidden');
-        }
-
-        function closeSidebar() {
-            elSidebar.classList.add('-translate-x-full');
-            elSidebarOverlay.classList.add('hidden');
-        }
-
-        document.getElementById('btn-open-sidebar').onclick = openSidebar;
-        document.getElementById('btn-close-sidebar').onclick = closeSidebar;
-        elSidebarOverlay.onclick = closeSidebar;
-
-        document.getElementById('btn-header-new-chat').onclick = createNewChat;
-        document.getElementById('btn-settings').onclick = () => elModalSettings.classList.remove('hidden');
-        document.getElementById('btn-configure-warning').onclick = () => elModalSettings.classList.remove('hidden');
-        
-        document.getElementById('btn-save-settings').onclick = () => {
-            apiKey = elApiKeyInput.value.trim();
-            localStorage.setItem('zenith_api_key', apiKey);
-            elModalSettings.classList.add('hidden');
-            updateApiKeyWarning();
-        };
-
-        elBtnSend.onclick = sendMessage;
-        elChatInput.onkeydown = (e) => { if (e.key === 'Enter') sendMessage(); };
-
-        init();
-    </script>
-</body>
-</html>
+        elApiKey
