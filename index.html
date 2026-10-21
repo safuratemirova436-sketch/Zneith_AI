@@ -129,7 +129,7 @@
         </div>
     </div>
 
-    <!-- Полный рабочий JavaScript -->
+    <!-- Автоматически определяющий рабочую модель JavaScript -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             let apiKey = localStorage.getItem('zenith_api_key') || '';
@@ -320,31 +320,59 @@
                 elChatScrollArea.scrollTop = elChatScrollArea.scrollHeight;
             }
 
+            // АВТОМАТИЧЕСКОЕ ОПРЕДЕЛЕНИЕ РАБОЧЕЙ МОДЕЛИ
             async function fetchGeminiResponse(text) {
-                // Поддержка актуальных моделей
-                const models = ['gemini-3.8-flash', 'gemini-2.5-flash', 'gemini-3.1-pro-preview', 'gemini-1.5-flash'];
-                let lastError = null;
+                let activeModel = localStorage.getItem('zenith_active_model');
 
-                for (const model of models) {
+                // 1. Попытка запросить с уже сохраненной моделью
+                if (activeModel) {
                     try {
-                        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+                        const url = `https://generativelanguage.googleapis.com/v1beta/${activeModel}:generateContent?key=${apiKey}`;
                         const res = await fetch(url, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ contents: [{ parts: [{ text: text }] }] })
                         });
-                        
                         const data = await res.json();
                         if (res.ok && data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
                             return data.candidates[0].content.parts[0].text;
                         }
-                        if (data.error) lastError = data.error.message;
-                    } catch (e) {
-                        lastError = e.message;
-                    }
+                    } catch (e) {}
                 }
-                
-                throw new Error(lastError || 'Проверьте ваш API ключ в настройках.');
+
+                // 2. Автоматический запрос списка поддерживаемых моделей у самого Google (ListModels)
+                try {
+                    const listRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+                    const listData = await listRes.json();
+
+                    if (listRes.ok && listData.models) {
+                        // Ищем любую модель, которая поддерживает generateContent
+                        const validModel = listData.models.find(m => 
+                            m.supportedGenerationMethods && 
+                            m.supportedGenerationMethods.includes('generateContent') &&
+                            (m.name.includes('flash') || m.name.includes('pro'))
+                        );
+
+                        if (validModel) {
+                            activeModel = validModel.name; // Например: "models/gemini-..."
+                            localStorage.setItem('zenith_active_model', activeModel);
+
+                            // Делаем запрос к найденной рабочей модели
+                            const url = `https://generativelanguage.googleapis.com/v1beta/${activeModel}:generateContent?key=${apiKey}`;
+                            const res = await fetch(url, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ contents: [{ parts: [{ text: text }] }] })
+                            });
+                            const data = await res.json();
+                            if (res.ok && data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
+                                return data.candidates[0].content.parts[0].text;
+                            }
+                        }
+                    }
+                } catch (e) {}
+
+                throw new Error('Не удалось подключиться к API. Проверьте правильность вашего ключа в настройках.');
             }
 
             async function sendMessage() {
@@ -410,6 +438,7 @@
             document.getElementById('btn-save-settings').onclick = () => {
                 apiKey = elApiKeyInput.value.trim();
                 localStorage.setItem('zenith_api_key', apiKey);
+                localStorage.removeItem('zenith_active_model'); // Сбрасываем модель при смене ключа
                 elModalSettings.classList.add('hidden');
                 updateApiKeyWarning();
             };
