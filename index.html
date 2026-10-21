@@ -11,15 +11,14 @@
             color: #f1f5f9; 
             font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             height: 100vh;
-            display: flex;
-            flex-direction: column;
+            margin: 0;
             overflow: hidden;
         }
 
         .bg-glow-1 {
             position: absolute;
-            width: 500px;
-            height: 500px;
+            width: 450px;
+            height: 450px;
             background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, rgba(0, 0, 0, 0) 70%);
             top: -100px;
             left: -100px;
@@ -42,18 +41,23 @@
             backdrop-filter: blur(12px); 
             border: 1px solid rgba(255, 255, 255, 0.07); 
         }
+        .glass-card:hover {
+            background: rgba(30, 41, 59, 0.8);
+            border-color: rgba(99, 102, 241, 0.4);
+        }
         .chat-active { 
             background: rgba(99, 102, 241, 0.25) !important; 
             border: 1px solid rgba(129, 140, 248, 0.5) !important; 
+            color: #ffffff !important;
         }
         .chat-item:hover .btn-delete-chat { opacity: 1; }
     </style>
 </head>
-<body class="relative">
+<body class="flex flex-col h-screen relative">
 
     <div class="bg-glow-1"></div>
 
-    <!-- Боковая панель -->
+    <!-- Выдвижное боковое меню -->
     <div id="sidebar-overlay" class="fixed inset-0 bg-black/70 z-40 hidden backdrop-blur-sm"></div>
     <aside id="sidebar" class="fixed top-0 left-0 h-full w-80 glass border-r border-slate-800 z-50 transform -translate-x-full transition-transform duration-300 ease-in-out flex flex-col p-4">
         <div class="flex justify-between items-center mb-6 pb-3 border-b border-slate-800">
@@ -65,23 +69,23 @@
         <div id="chats-list" class="flex-1 space-y-2 overflow-y-auto pr-1"></div>
     </aside>
 
-    <!-- Шапка -->
+    <!-- Верхняя шапка -->
     <header class="px-6 py-4 flex justify-between items-center z-10 glass border-b border-slate-800/80 shrink-0">
         <div class="flex items-center space-x-4">
-            <button id="btn-open-sidebar" class="text-slate-300 hover:text-white text-lg p-2 rounded-xl bg-slate-800/60 border border-slate-700/50 cursor-pointer">
+            <button id="btn-open-sidebar" class="text-slate-300 hover:text-white text-lg p-2 rounded-xl bg-slate-800/60 border border-slate-700/50 cursor-pointer transition">
                 ☰
             </button>
             <div class="flex items-center space-x-3">
-                <div class="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center font-extrabold text-white text-lg shadow-lg">Z</div>
-                <span class="font-bold text-xl text-white">Zenith AI</span>
+                <div class="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center font-extrabold text-white text-lg shadow-lg shadow-indigo-600/30">Z</div>
+                <span class="font-bold text-xl text-white tracking-wide">Zenith AI</span>
             </div>
         </div>
 
         <div class="flex items-center space-x-2.5">
-            <button id="btn-header-new-chat" title="Новый чат" class="w-9 h-9 rounded-xl bg-indigo-600 hover:bg-indigo-500 border border-indigo-400/30 flex items-center justify-center text-white text-xl cursor-pointer">
+            <button id="btn-header-new-chat" title="Новый чат" class="w-9 h-9 rounded-xl bg-indigo-600 hover:bg-indigo-500 border border-indigo-400/30 flex items-center justify-center text-white text-xl cursor-pointer transition">
                 +
             </button>
-            <button id="btn-settings" title="Настройки API" class="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 flex items-center justify-center text-slate-200 text-base cursor-pointer">
+            <button id="btn-settings" title="Настройки API" class="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 flex items-center justify-center text-slate-200 text-base cursor-pointer transition">
                 ⚙️
             </button>
             <div id="user-badge" class="px-3.5 py-1.5 rounded-xl bg-indigo-950 border border-indigo-500/40 text-indigo-200 text-xs font-semibold">
@@ -90,11 +94,11 @@
         </div>
     </header>
 
-    <!-- Чат (Центральный блок с правильной высотой) -->
-    <main class="flex-1 overflow-y-auto p-4 sm:p-6 max-w-4xl w-full mx-auto flex flex-col justify-end z-10">
-        <div id="warning-banner" class="hidden mb-4 bg-amber-950/60 border border-amber-500/50 text-amber-200 px-4 py-3 rounded-2xl flex items-center justify-between text-xs sm:text-sm">
-            <span>⚠️ <b>API ключ не задан.</b> Добавьте ваш ключ Gemini в настройках.</span>
-            <button id="btn-configure-warning" class="bg-amber-500/20 hover:bg-amber-500/40 px-3 py-1 rounded-lg text-amber-100 font-medium ml-2 cursor-pointer">Настроить</button>
+    <!-- Основной блок сообщений -->
+    <main id="chat-scroll-area" class="flex-1 overflow-y-auto p-4 sm:p-6 max-w-4xl w-full mx-auto flex flex-col z-10">
+        <div id="warning-banner" class="hidden mb-4 bg-amber-950/60 border border-amber-500/50 text-amber-200 px-4 py-3 rounded-2xl flex items-center justify-between text-xs sm:text-sm shrink-0">
+            <span>⚠️ <b>API ключ не задан.</b> Добавьте ваш бесплатный ключ Gemini в настройках.</span>
+            <button id="btn-configure-warning" class="bg-amber-500/20 hover:bg-amber-500/40 px-3 py-1 rounded-lg text-amber-100 font-medium ml-2 cursor-pointer transition">Настроить</button>
         </div>
 
         <div id="messages-container" class="space-y-4 w-full my-auto"></div>
@@ -105,7 +109,7 @@
         <div class="max-w-3xl mx-auto space-y-2">
             <div class="relative flex items-center">
                 <input type="text" id="chat-input" placeholder="Задайте вопрос Zenith AI..." class="w-full bg-slate-900/90 border border-slate-700 rounded-2xl px-5 py-4 pr-14 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 text-sm">
-                <button id="btn-send" class="absolute right-3 bg-indigo-600 hover:bg-indigo-500 text-white w-9 h-9 rounded-xl flex items-center justify-center text-base cursor-pointer">
+                <button id="btn-send" class="absolute right-3 bg-indigo-600 hover:bg-indigo-500 text-white w-9 h-9 rounded-xl flex items-center justify-center text-base cursor-pointer transition">
                     ➔
                 </button>
             </div>
@@ -120,266 +124,300 @@
             <p class="text-xs text-slate-400">Получите бесплатный ключ на странице <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-indigo-400 underline">Google AI Studio</a>.</p>
             <input type="password" id="input-api-key" placeholder="Вставьте API ключ (AIzaSy...)" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-indigo-500">
             <div class="flex justify-end space-x-2 pt-2">
-                <button id="btn-save-settings" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-medium cursor-pointer">Сохранить</button>
+                <button id="btn-save-settings" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-medium cursor-pointer transition">Сохранить</button>
             </div>
         </div>
     </div>
 
+    <!-- Полный рабочий JavaScript -->
     <script>
-        let apiKey = localStorage.getItem('zenith_api_key') || '';
-        let rawChats = JSON.parse(localStorage.getItem('zenith_chats')) || [];
-        
-        let chats = Array.isArray(rawChats) ? rawChats.filter(c => c && typeof c === 'object' && c.id && c.title && Array.isArray(c.messages)) : [];
-        let activeChatId = localStorage.getItem('zenith_active_chat_id') || null;
-
-        const elApiKeyInput = document.getElementById('input-api-key');
-        const elModalSettings = document.getElementById('modal-settings');
-        const elWarningBanner = document.getElementById('warning-banner');
-        const elChatInput = document.getElementById('chat-input');
-        const elBtnSend = document.getElementById('btn-send');
-        const elMessagesContainer = document.getElementById('messages-container');
-        const elChatsList = document.getElementById('chats-list');
-
-        const elSidebar = document.getElementById('sidebar');
-        const elSidebarOverlay = document.getElementById('sidebar-overlay');
-
-        elApiKeyInput.value = apiKey;
-
-        function updateApiKeyWarning() {
-            if (!apiKey) {
-                elWarningBanner.classList.remove('hidden');
-            } else {
-                elWarningBanner.classList.add('hidden');
+        document.addEventListener('DOMContentLoaded', () => {
+            let apiKey = localStorage.getItem('zenith_api_key') || '';
+            let rawChats = [];
+            try {
+                rawChats = JSON.parse(localStorage.getItem('zenith_chats')) || [];
+            } catch (e) {
+                rawChats = [];
             }
-        }
+            
+            let chats = Array.isArray(rawChats) ? rawChats.filter(c => c && typeof c === 'object' && c.id && c.title && Array.isArray(c.messages)) : [];
+            let activeChatId = localStorage.getItem('zenith_active_chat_id') || null;
 
-        function init() {
-            updateApiKeyWarning();
-            if (chats.length === 0) {
-                createNewChat();
-            } else {
-                if (!activeChatId || !chats.find(c => c.id === activeChatId)) {
-                    activeChatId = chats[0].id;
+            const elApiKeyInput = document.getElementById('input-api-key');
+            const elModalSettings = document.getElementById('modal-settings');
+            const elWarningBanner = document.getElementById('warning-banner');
+            const elChatInput = document.getElementById('chat-input');
+            const elBtnSend = document.getElementById('btn-send');
+            const elMessagesContainer = document.getElementById('messages-container');
+            const elChatScrollArea = document.getElementById('chat-scroll-area');
+            const elChatsList = document.getElementById('chats-list');
+
+            const elSidebar = document.getElementById('sidebar');
+            const elSidebarOverlay = document.getElementById('sidebar-overlay');
+
+            elApiKeyInput.value = apiKey;
+
+            function updateApiKeyWarning() {
+                if (!apiKey) {
+                    elWarningBanner.classList.remove('hidden');
+                } else {
+                    elWarningBanner.classList.add('hidden');
                 }
-                saveChats();
-                renderChatsList();
-                renderMessages();
             }
-        }
 
-        function createNewChat() {
-            const newChat = {
-                id: 'chat_' + Date.now(),
-                title: 'Новый диалог',
-                messages: []
-            };
-            chats.unshift(newChat);
-            activeChatId = newChat.id;
-            saveChats();
-            renderChatsList();
-            renderMessages();
-            closeSidebar();
-        }
-
-        function deleteChat(chatId, e) {
-            e.stopPropagation();
-            chats = chats.filter(c => c.id !== chatId);
-            if (chats.length === 0) {
-                createNewChat();
-            } else {
-                if (activeChatId === chatId) {
-                    activeChatId = chats[0].id;
-                }
-                saveChats();
-                renderChatsList();
-                renderMessages();
-            }
-        }
-
-        function saveChats() {
-            localStorage.setItem('zenith_chats', JSON.stringify(chats));
-            localStorage.setItem('zenith_active_chat_id', activeChatId);
-        }
-
-        function renderChatsList() {
-            elChatsList.innerHTML = '';
-            chats.forEach(chat => {
-                const container = document.createElement('div');
-                const isActive = chat.id === activeChatId;
-                container.className = `chat-item group w-full px-4 py-3 rounded-xl text-sm font-medium flex items-center justify-between cursor-pointer transition ${isActive ? 'chat-active' : 'glass-card text-slate-300'}`;
-                
-                const titleSpan = document.createElement('span');
-                titleSpan.className = 'truncate flex-1 pr-2';
-                titleSpan.innerText = chat.title || 'Новый диалог';
-
-                const deleteBtn = document.createElement('button');
-                deleteBtn.className = 'btn-delete-chat opacity-0 hover:text-red-400 text-slate-400 transition p-1 cursor-pointer';
-                deleteBtn.title = 'Удалить';
-                deleteBtn.innerHTML = '🗑️';
-                deleteBtn.onclick = (e) => deleteChat(chat.id, e);
-
-                container.appendChild(titleSpan);
-                container.appendChild(deleteBtn);
-
-                container.onclick = () => {
-                    activeChatId = chat.id;
+            function init() {
+                updateApiKeyWarning();
+                if (chats.length === 0) {
+                    createNewChat();
+                } else {
+                    if (!activeChatId || !chats.find(c => c.id === activeChatId)) {
+                        activeChatId = chats[0].id;
+                    }
                     saveChats();
                     renderChatsList();
                     renderMessages();
-                    closeSidebar();
-                };
-
-                elChatsList.appendChild(container);
-            });
-        }
-
-        window.sendQuickPrompt = function(text) {
-            elChatInput.value = text;
-            sendMessage();
-        };
-
-        function renderMessages() {
-            const activeChat = chats.find(c => c.id === activeChatId);
-            if (!activeChat) return;
-
-            elMessagesContainer.innerHTML = '';
-
-            if (!activeChat.messages || activeChat.messages.length === 0) {
-                elMessagesContainer.innerHTML = `
-                    <div class="space-y-6">
-                        <div class="flex justify-start">
-                            <div class="glass border border-slate-800 rounded-2xl px-5 py-4 text-sm text-slate-200 max-w-[85%] shadow-xl">
-                                Здравствуйте, Jasur! Чем я могу помочь вам сегодня? ✨
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-                            <div onclick="window.sendQuickPrompt('Придумай 3 идеи для проекта')" class="glass-card p-4 rounded-2xl cursor-pointer transition">
-                                <div class="text-indigo-400 text-lg mb-1">💡 Идеи</div>
-                                <div class="text-xs text-slate-400">Придумать идеи для проекта</div>
-                            </div>
-                            <div onclick="window.sendQuickPrompt('Напиши простой сайт на HTML/CSS')" class="glass-card p-4 rounded-2xl cursor-pointer transition">
-                                <div class="text-indigo-400 text-lg mb-1">💻 Кодинг</div>
-                                <div class="text-xs text-slate-400">Написать код приложения</div>
-                            </div>
-                            <div onclick="window.sendQuickPrompt('Расскажи интересные факты про космос')" class="glass-card p-4 rounded-2xl cursor-pointer transition">
-                                <div class="text-indigo-400 text-lg mb-1">📚 Интересно</div>
-                                <div class="text-xs text-slate-400">Рассказать что-то новое</div>
-                            </div>
-                        </div>
-                    </div>`;
-                return;
-            }
-
-            activeChat.messages.forEach(msg => {
-                appendMessageToDOM(msg.role, msg.text);
-            });
-            elMessagesContainer.parentElement.scrollTop = elMessagesContainer.parentElement.scrollHeight;
-        }
-
-        function copyToClipboard(text, btn) {
-            navigator.clipboard.writeText(text);
-            btn.innerText = '✓ Скопировано';
-            setTimeout(() => btn.innerText = '📋 Копировать', 2000);
-        }
-
-        function appendMessageToDOM(role, text) {
-            const div = document.createElement('div');
-            div.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'}`;
-            
-            const wrapper = document.createElement('div');
-            wrapper.className = `max-w-[85%] rounded-2xl px-5 py-4 text-sm relative group ${role === 'user' ? 'bg-indigo-600 text-white' : 'glass border border-slate-800 text-slate-200'}`;
-            
-            const p = document.createElement('div');
-            p.className = 'whitespace-pre-wrap leading-relaxed';
-            p.innerText = text;
-            wrapper.appendChild(p);
-
-            if (role === 'assistant') {
-                const copyBtn = document.createElement('button');
-                copyBtn.className = 'mt-2 text-[11px] text-slate-400 hover:text-indigo-300 transition cursor-pointer flex items-center gap-1';
-                copyBtn.innerText = '📋 Копировать';
-                copyBtn.onclick = () => copyToClipboard(text, copyBtn);
-                wrapper.appendChild(copyBtn);
-            }
-
-            div.appendChild(wrapper);
-            elMessagesContainer.appendChild(div);
-            elMessagesContainer.parentElement.scrollTop = elMessagesContainer.parentElement.scrollHeight;
-        }
-
-        async function fetchGeminiResponse(text) {
-            // Список поддерживаемых версий модели
-            const models = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
-            let lastError = null;
-
-            for (const model of models) {
-                try {
-                    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-                    const res = await fetch(url, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ contents: [{ parts: [{ text: text }] }] })
-                    });
-                    
-                    const data = await res.json();
-                    if (res.ok && data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
-                        return data.candidates[0].content.parts[0].text;
-                    }
-                    if (data.error) lastError = data.error.message;
-                } catch (e) {
-                    lastError = e.message;
                 }
             }
-            
-            throw new Error(lastError || 'Не удалось связаться с сервером Gemini.');
-        }
 
-        async function sendMessage() {
-            const text = elChatInput.value.trim();
-            if (!text) return;
-
-            if (!apiKey) {
-                elModalSettings.classList.remove('hidden');
-                return;
-            }
-
-            const activeChat = chats.find(c => c.id === activeChatId);
-            if (!activeChat) return;
-
-            if (!activeChat.messages || activeChat.messages.length === 0) {
-                activeChat.title = text.slice(0, 22) + (text.length > 22 ? '...' : '');
+            function createNewChat() {
+                const newChat = {
+                    id: 'chat_' + Date.now(),
+                    title: 'Новый диалог',
+                    messages: []
+                };
+                chats.unshift(newChat);
+                activeChatId = newChat.id;
+                saveChats();
                 renderChatsList();
+                renderMessages();
+                closeSidebar();
             }
 
-            activeChat.messages.push({ role: 'user', text: text });
-            saveChats();
-            renderMessages();
-            elChatInput.value = '';
-
-            const loadingDiv = document.createElement('div');
-            loadingDiv.className = 'flex justify-start';
-            loadingDiv.innerHTML = `<div class="glass border border-slate-800 rounded-2xl px-5 py-3.5 text-sm text-indigo-400 animate-pulse">✨ Zenith AI думает...</div>`;
-            elMessagesContainer.appendChild(loadingDiv);
-            elMessagesContainer.parentElement.scrollTop = elMessagesContainer.parentElement.scrollHeight;
-
-            try {
-                const reply = await fetchGeminiResponse(text);
-                loadingDiv.remove();
-                activeChat.messages.push({ role: 'assistant', text: reply });
-                saveChats();
-                renderMessages();
-            } catch (err) {
-                loadingDiv.remove();
-                activeChat.messages.push({ role: 'assistant', text: 'Ошибка: ' + err.message });
-                saveChats();
-                renderMessages();
+            function deleteChat(chatId, e) {
+                e.stopPropagation();
+                chats = chats.filter(c => c.id !== chatId);
+                if (chats.length === 0) {
+                    createNewChat();
+                } else {
+                    if (activeChatId === chatId) {
+                        activeChatId = chats[0].id;
+                    }
+                    saveChats();
+                    renderChatsList();
+                    renderMessages();
+                }
             }
-        }
 
-        function openSidebar() {
-            elSidebar.classList.remove('-translate-x-full');
-            elSidebarOverlay.classList.remove('hidden');
-        }
+            function saveChats() {
+                localStorage.setItem('zenith_chats', JSON.stringify(chats));
+                localStorage.setItem('zenith_active_chat_id', activeChatId);
+            }
 
-        function closeSidebar() {
+            function renderChatsList() {
+                elChatsList.innerHTML = '';
+                chats.forEach(chat => {
+                    const container = document.createElement('div');
+                    const isActive = chat.id === activeChatId;
+                    container.className = `chat-item group w-full px-4 py-3 rounded-xl text-sm font-medium flex items-center justify-between cursor-pointer transition ${isActive ? 'chat-active' : 'glass-card text-slate-300'}`;
+                    
+                    const titleSpan = document.createElement('span');
+                    titleSpan.className = 'truncate flex-1 pr-2';
+                    titleSpan.innerText = chat.title || 'Новый диалог';
+
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'btn-delete-chat opacity-0 hover:text-red-400 text-slate-400 transition p-1 cursor-pointer';
+                    deleteBtn.title = 'Удалить';
+                    deleteBtn.innerHTML = '🗑️';
+                    deleteBtn.onclick = (e) => deleteChat(chat.id, e);
+
+                    container.appendChild(titleSpan);
+                    container.appendChild(deleteBtn);
+
+                    container.onclick = () => {
+                        activeChatId = chat.id;
+                        saveChats();
+                        renderChatsList();
+                        renderMessages();
+                        closeSidebar();
+                    };
+
+                    elChatsList.appendChild(container);
+                });
+            }
+
+            window.sendQuickPrompt = function(text) {
+                elChatInput.value = text;
+                sendMessage();
+            };
+
+            function renderMessages() {
+                const activeChat = chats.find(c => c.id === activeChatId);
+                if (!activeChat) return;
+
+                elMessagesContainer.innerHTML = '';
+
+                if (!activeChat.messages || activeChat.messages.length === 0) {
+                    elMessagesContainer.innerHTML = `
+                        <div class="space-y-6">
+                            <div class="flex justify-start">
+                                <div class="glass border border-slate-800 rounded-2xl px-5 py-4 text-sm text-slate-200 max-w-[85%] shadow-xl">
+                                    Здравствуйте, Jasur! Чем я могу помочь вам сегодня? ✨
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                                <div onclick="window.sendQuickPrompt('Придумай 3 идеи для проекта')" class="glass-card p-4 rounded-2xl cursor-pointer transition">
+                                    <div class="text-indigo-400 text-lg mb-1">💡 Идеи</div>
+                                    <div class="text-xs text-slate-400">Придумать идеи для проекта</div>
+                                </div>
+                                <div onclick="window.sendQuickPrompt('Напиши простой сайт на HTML/CSS')" class="glass-card p-4 rounded-2xl cursor-pointer transition">
+                                    <div class="text-indigo-400 text-lg mb-1">💻 Кодинг</div>
+                                    <div class="text-xs text-slate-400">Написать код приложения</div>
+                                </div>
+                                <div onclick="window.sendQuickPrompt('Расскажи интересные факты про космос')" class="glass-card p-4 rounded-2xl cursor-pointer transition">
+                                    <div class="text-indigo-400 text-lg mb-1">📚 Интересно</div>
+                                    <div class="text-xs text-slate-400">Рассказать что-то новое</div>
+                                </div>
+                            </div>
+                        </div>`;
+                    return;
+                }
+
+                activeChat.messages.forEach(msg => {
+                    appendMessageToDOM(msg.role, msg.text);
+                });
+                elChatScrollArea.scrollTop = elChatScrollArea.scrollHeight;
+            }
+
+            function copyToClipboard(text, btn) {
+                navigator.clipboard.writeText(text);
+                btn.innerText = '✓ Скопировано';
+                setTimeout(() => btn.innerText = '📋 Копировать', 2000);
+            }
+
+            function appendMessageToDOM(role, text) {
+                const div = document.createElement('div');
+                div.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'}`;
+                
+                const wrapper = document.createElement('div');
+                wrapper.className = `max-w-[85%] rounded-2xl px-5 py-4 text-sm relative group ${role === 'user' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'glass border border-slate-800 text-slate-200'}`;
+                
+                const p = document.createElement('div');
+                p.className = 'whitespace-pre-wrap leading-relaxed';
+                p.innerText = text;
+                wrapper.appendChild(p);
+
+                if (role === 'assistant') {
+                    const copyBtn = document.createElement('button');
+                    copyBtn.className = 'mt-2 text-[11px] text-slate-400 hover:text-indigo-300 transition cursor-pointer flex items-center gap-1';
+                    copyBtn.innerText = '📋 Копировать';
+                    copyBtn.onclick = () => copyToClipboard(text, copyBtn);
+                    wrapper.appendChild(copyBtn);
+                }
+
+                div.appendChild(wrapper);
+                elMessagesContainer.appendChild(div);
+                elChatScrollArea.scrollTop = elChatScrollArea.scrollHeight;
+            }
+
+            async function fetchGeminiResponse(text) {
+                const models = ['gemini-1.5-flash', 'gemini-2.0-flash'];
+                let lastError = null;
+
+                for (const model of models) {
+                    try {
+                        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+                        const res = await fetch(url, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ contents: [{ parts: [{ text: text }] }] })
+                        });
+                        
+                        const data = await res.json();
+                        if (res.ok && data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
+                            return data.candidates[0].content.parts[0].text;
+                        }
+                        if (data.error) lastError = data.error.message;
+                    } catch (e) {
+                        lastError = e.message;
+                    }
+                }
+                
+                throw new Error(lastError || 'Проверьте ваш API ключ в настройках.');
+            }
+
+            async function sendMessage() {
+                const text = elChatInput.value.trim();
+                if (!text) return;
+
+                if (!apiKey) {
+                    elModalSettings.classList.remove('hidden');
+                    return;
+                }
+
+                const activeChat = chats.find(c => c.id === activeChatId);
+                if (!activeChat) return;
+
+                if (!activeChat.messages || activeChat.messages.length === 0) {
+                    activeChat.title = text.slice(0, 22) + (text.length > 22 ? '...' : '');
+                    renderChatsList();
+                }
+
+                activeChat.messages.push({ role: 'user', text: text });
+                saveChats();
+                renderMessages();
+                elChatInput.value = '';
+
+                const loadingDiv = document.createElement('div');
+                loadingDiv.className = 'flex justify-start';
+                loadingDiv.innerHTML = `<div class="glass border border-slate-800 rounded-2xl px-5 py-3.5 text-sm text-indigo-400 animate-pulse">✨ Zenith AI думает...</div>`;
+                elMessagesContainer.appendChild(loadingDiv);
+                elChatScrollArea.scrollTop = elChatScrollArea.scrollHeight;
+
+                try {
+                    const reply = await fetchGeminiResponse(text);
+                    loadingDiv.remove();
+                    activeChat.messages.push({ role: 'assistant', text: reply });
+                    saveChats();
+                    renderMessages();
+                } catch (err) {
+                    loadingDiv.remove();
+                    activeChat.messages.push({ role: 'assistant', text: 'Ошибка: ' + err.message });
+                    saveChats();
+                    renderMessages();
+                }
+            }
+
+            function openSidebar() {
+                elSidebar.classList.remove('-translate-x-full');
+                elSidebarOverlay.classList.remove('hidden');
+            }
+
+            function closeSidebar() {
+                elSidebar.classList.add('-translate-x-full');
+                elSidebarOverlay.classList.add('hidden');
+            }
+
+            document.getElementById('btn-open-sidebar').onclick = openSidebar;
+            document.getElementById('btn-close-sidebar').onclick = closeSidebar;
+            elSidebarOverlay.onclick = closeSidebar;
+
+            document.getElementById('btn-header-new-chat').onclick = createNewChat;
+            document.getElementById('btn-settings').onclick = () => elModalSettings.classList.remove('hidden');
+            document.getElementById('btn-configure-warning').onclick = () => elModalSettings.classList.remove('hidden');
+            
+            document.getElementById('btn-save-settings').onclick = () => {
+                apiKey = elApiKeyInput.value.trim();
+                localStorage.setItem('zenith_api_key', apiKey);
+                elModalSettings.classList.add('hidden');
+                updateApiKeyWarning();
+            };
+
+            elBtnSend.onclick = sendMessage;
+            elChatInput.onkeydown = (e) => { if (e.key === 'Enter') sendMessage(); };
+
+            init();
+        });
+    </script>
+</body>
+</html>
