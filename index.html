@@ -129,7 +129,7 @@
         </div>
     </div>
 
-    <!-- Обновленный скрипт -->
+    <!-- Завершённый скрипт -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             let apiKey = localStorage.getItem('zenith_api_key') || '';
@@ -320,38 +320,22 @@
                 elChatScrollArea.scrollTop = elChatScrollArea.scrollHeight;
             }
 
-            // Google-ийн одоо ажиллаж байгаа баталгаатай загварууд
             async function fetchGeminiResponse(text) {
-                const models = [
-                    'gemini-2.0-flash',
-                    'gemini-1.5-flash-8b'
-                ];
-
-                let lastErrMsg = '';
-
-                for (const model of models) {
-                    try {
-                        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-                        const res = await fetch(url, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ contents: [{ parts: [{ text: text }] }] })
-                        });
-                        const data = await res.json();
-                        
-                        if (res.ok && data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
-                            return data.candidates[0].content.parts[0].text;
-                        }
-                        
-                        if (data.error && data.error.message) {
-                            lastErrMsg = data.error.message;
-                        }
-                    } catch (e) {
-                        lastErrMsg = e.message;
-                    }
+                // Стабильная основная модель Google
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+                
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: text }] }] })
+                });
+                
+                const data = await res.json();
+                if (res.ok && data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
+                    return data.candidates[0].content.parts[0].text;
                 }
-
-                throw new Error(lastErrMsg || 'Холболтын алдаа. Тохиргоо хэсэгт API түлхүүрээ шалгалгүй оруулна уу.');
+                
+                throw new Error(data.error?.message || 'Не удалось получить ответ. Проверьте ваш API ключ.');
             }
 
             async function sendMessage() {
@@ -378,7 +362,7 @@
 
                 const loadingDiv = document.createElement('div');
                 loadingDiv.className = 'flex justify-start';
-                loadingDiv.innerHTML = `<div class="glass border border-slate-800 rounded-2xl px-5 py-3.5 text-sm text-indigo-400 animate-pulse">✨ Zenith AI бодож байна...</div>`;
+                loadingDiv.innerHTML = `<div class="glass border border-slate-800 rounded-2xl px-5 py-3.5 text-sm text-indigo-400 animate-pulse">✨ Zenith AI думает...</div>`;
                 elMessagesContainer.appendChild(loadingDiv);
                 elChatScrollArea.scrollTop = elChatScrollArea.scrollHeight;
 
@@ -390,7 +374,7 @@
                     renderMessages();
                 } catch (err) {
                     loadingDiv.remove();
-                    activeChat.messages.push({ role: 'assistant', text: 'Алдаа: ' + err.message });
+                    activeChat.messages.push({ role: 'assistant', text: 'Ошибка: ' + err.message });
                     saveChats();
                     renderMessages();
                 }
