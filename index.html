@@ -129,7 +129,7 @@
         </div>
     </div>
 
-    <!-- Полный скрипт с автоопределением рабочей модели -->
+    <!-- Обновлённый JS-скрипт без служебного текста -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             let apiKey = localStorage.getItem('zenith_api_key') || '';
@@ -320,26 +320,28 @@
                 elChatScrollArea.scrollTop = elChatScrollArea.scrollHeight;
             }
 
-            // Динамический поиск рабочих моделей прямо из Google API
+            // Динамический подбор Чистых Gemini моделей (без внутреннего вывода мыслей)
             async function fetchGeminiResponse(text) {
                 let lastErrMsg = '';
 
-                // 1. Запрашиваем официальный список доступных моделей
                 try {
                     const listRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
                     const listData = await listRes.json();
 
                     if (listRes.ok && listData.models && listData.models.length > 0) {
-                        // Отбираем все модели, поддерживающие генерацию текста
+                        // Приоритет отдаем официальным моделям Gemini, исключая сырые версии
                         const validModels = listData.models.filter(m => 
                             m.supportedGenerationMethods && 
                             m.supportedGenerationMethods.includes('generateContent')
-                        );
+                        ).sort((a, b) => {
+                            const aIsGemini = a.name.includes('gemini') ? 1 : 0;
+                            const bIsGemini = b.name.includes('gemini') ? 1 : 0;
+                            return bIsGemini - aIsGemini;
+                        });
 
-                        // Пробуем каждую доступную модель по очереди
                         for (const modelObj of validModels) {
                             try {
-                                const modelName = modelObj.name; // Например "models/gemini-..."
+                                const modelName = modelObj.name;
                                 const url = `https://generativelanguage.googleapis.com/v1beta/${modelName}:generateContent?key=${apiKey}`;
                                 
                                 const res = await fetch(url, {
@@ -350,7 +352,12 @@
                                 
                                 const data = await res.json();
                                 if (res.ok && data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
-                                    return data.candidates[0].content.parts[0].text;
+                                    let cleanText = data.candidates[0].content.parts[0].text;
+                                    
+                                    // Очистка от случайных служебных списков (* Acknowledge...) если они появятся
+                                    cleanText = cleanText.replace(/(\* [^\n]+\n?)+/g, '').trim();
+                                    
+                                    if (cleanText) return cleanText;
                                 }
                                 if (data.error?.message) {
                                     lastErrMsg = data.error.message;
