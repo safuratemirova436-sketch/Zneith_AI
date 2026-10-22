@@ -129,7 +129,7 @@
         </div>
     </div>
 
-    <!-- Завершённый скрипт -->
+    <!-- Полный скрипт с автоопределением рабочей модели -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             let apiKey = localStorage.getItem('zenith_api_key') || '';
@@ -320,22 +320,53 @@
                 elChatScrollArea.scrollTop = elChatScrollArea.scrollHeight;
             }
 
+            // Динамический поиск рабочих моделей прямо из Google API
             async function fetchGeminiResponse(text) {
-                // Стабильная основная модель Google
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-                
-                const res = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ contents: [{ parts: [{ text: text }] }] })
-                });
-                
-                const data = await res.json();
-                if (res.ok && data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
-                    return data.candidates[0].content.parts[0].text;
+                let lastErrMsg = '';
+
+                // 1. Запрашиваем официальный список доступных моделей
+                try {
+                    const listRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+                    const listData = await listRes.json();
+
+                    if (listRes.ok && listData.models && listData.models.length > 0) {
+                        // Отбираем все модели, поддерживающие генерацию текста
+                        const validModels = listData.models.filter(m => 
+                            m.supportedGenerationMethods && 
+                            m.supportedGenerationMethods.includes('generateContent')
+                        );
+
+                        // Пробуем каждую доступную модель по очереди
+                        for (const modelObj of validModels) {
+                            try {
+                                const modelName = modelObj.name; // Например "models/gemini-..."
+                                const url = `https://generativelanguage.googleapis.com/v1beta/${modelName}:generateContent?key=${apiKey}`;
+                                
+                                const res = await fetch(url, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ contents: [{ parts: [{ text: text }] }] })
+                                });
+                                
+                                const data = await res.json();
+                                if (res.ok && data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
+                                    return data.candidates[0].content.parts[0].text;
+                                }
+                                if (data.error?.message) {
+                                    lastErrMsg = data.error.message;
+                                }
+                            } catch (e) {
+                                lastErrMsg = e.message;
+                            }
+                        }
+                    } else if (listData.error?.message) {
+                        lastErrMsg = listData.error.message;
+                    }
+                } catch (e) {
+                    lastErrMsg = e.message;
                 }
-                
-                throw new Error(data.error?.message || 'Не удалось получить ответ. Проверьте ваш API ключ.');
+
+                throw new Error(lastErrMsg || 'Проверьте правильность вашего API ключа в настройках.');
             }
 
             async function sendMessage() {
